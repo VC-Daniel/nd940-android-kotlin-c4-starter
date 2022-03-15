@@ -12,13 +12,25 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
 
+/**
+ * Facilitates creating a new reminder based on the POI the user selected
+ * and the title and description they enter.
+ */
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
+
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()
     val reminderSelectedLocationStr = MutableLiveData<String>()
+    var reminderID: String = String()
+
+    /** The POI the user has selected */
     val selectedPOI = MutableLiveData<PointOfInterest>()
+
+    /** The latitude for the POI the user has selected */
     val latitude = MutableLiveData<Double>()
+
+    /** The longitude for the POI the user has selected */
     val longitude = MutableLiveData<Double>()
 
     /**
@@ -58,14 +70,17 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
                     reminderData.id
                 )
             )
+            reminderID = reminderData.id
             showLoading.value = false
             showToast.value = app.getString(R.string.reminder_saved)
+
+            // Return to the reminders list screen now that the new reminder has been saved
             navigationCommand.value = NavigationCommand.Back
         }
     }
 
     /**
-     * Validate the entered data and show error to the user if there's any invalid data
+     * Validate the entered data and show an error to the user if there's any invalid data
      */
     fun validateEnteredData(reminderData: ReminderDataItem): Boolean {
         if (reminderData.title.isNullOrEmpty()) {
