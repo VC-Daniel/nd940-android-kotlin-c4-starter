@@ -10,7 +10,9 @@
     <string name="reminder_saved">Reminder Saved !</string>
     <string name="logout">Logout</string>
     <string name="welcome_to_the_location_reminder_app">Welcome to the location reminder app</string>
+    <string name="feature_details_location_reminder_app">Glad you stopped by. Please register with either your email or a Google account and then we can start creating location based reminders!</string>
     <string name="login">Login</string>
+    <string name="register">Register</string>
     <string name="title_activity_maps">Map</string>
     <string name="normal_map">Normal Map</string>
     <string name="hybrid_map">Hybrid Map</string>
@@ -40,4 +42,9 @@
     <string name="geofence_too_many_geofences">Your app has registered too many geofences.</string>
     <string name="geofence_too_many_pending_intents">You have provided too many PendingIntents to the addGeofences() call.</string>
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
+    <string name="register_google">Register with Google</string>
+    <string name="map_description">Image of a person pointing at a paper map.</string>
+    <string name="sign_in_email">Sign in with email</string>
+    <string name="register_email">Register with email</string>
+    <string name="sign_in_google">Sign in with Google</string>
 </resources>

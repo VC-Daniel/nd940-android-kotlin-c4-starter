@@ -16,6 +16,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -116,11 +117,15 @@ dependencies {
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
     androidTestImplementation('org.koin:koin-test:2.0.1') { exclude group: 'org.mockito' }
 
-
-
-    //Maps & Geofencing
+    // Maps & Geofencing libraries
     implementation "com.google.android.gms:play-services-location:$playServicesVersion"
     implementation "com.google.android.gms:play-services-maps:$playServicesVersion"
 
+    // Firebase library used for logging in using email or a Google account
+    implementation "com.firebaseui:firebase-ui-auth:$firebaseVersion"
 
+    // Using the multidex library in order to build the app
+    // This is needed because there are too many methods to have on a single dex file.
+    // This solution was is based off the following source https://stackoverflow.com/a/49837980
+    implementation "com.android.support:multidex:$multidexVersion"
 }
