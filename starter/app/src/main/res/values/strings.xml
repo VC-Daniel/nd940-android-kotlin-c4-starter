@@ -47,4 +47,7 @@
     <string name="sign_in_email">Sign in with email</string>
     <string name="register_email">Register with email</string>
     <string name="sign_in_google">Sign in with Google</string>
+    <string name="reminder_sample_title">Pick up groceries</string>
+    <string name="reminder_sample_description">Get milk, eggs, bread.</string>
+    <string name="reminder_sample_location">Local Grocery Store</string>
 </resources>
