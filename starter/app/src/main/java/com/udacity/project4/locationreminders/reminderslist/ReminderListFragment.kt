@@ -1,9 +1,15 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.*
+import androidx.activity.addCallback
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -12,10 +18,15 @@ import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
+/**
+ * Display all the reminders and allow the user to logout and initiate creation of a new reminder
+ */
 class ReminderListFragment : BaseFragment() {
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
+    private lateinit var navController: NavController
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -32,6 +43,13 @@ class ReminderListFragment : BaseFragment() {
         setTitle(getString(R.string.app_name))
 
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
+
+        navController = findNavController()
+
+        // If the user presses the back button, log them out and bring them back to the login screen
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+            logout()
+        }
 
         return binding.root
     }
@@ -64,14 +82,14 @@ class ReminderListFragment : BaseFragment() {
         val adapter = RemindersListAdapter {
         }
 
-//        setup the recycler view using the extension function
+        // setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.logout -> {
-//                TODO: add the logout implementation
+                logout()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -80,8 +98,18 @@ class ReminderListFragment : BaseFragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-//        display logout as menu item
+        // display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    /** Log the user out and return them to the login screen */
+    private fun logout() {
+        // Sign the user out using the Firebase api
+        AuthUI.getInstance().signOut(requireContext())
+        // Clear the back stack so the user cannot return to this screen without logging in
+        navController.popBackStack(R.id.reminderListFragment, true)
+        val intent = Intent(context, AuthenticationActivity::class.java)
+        startActivity(intent)
     }
 
 }
