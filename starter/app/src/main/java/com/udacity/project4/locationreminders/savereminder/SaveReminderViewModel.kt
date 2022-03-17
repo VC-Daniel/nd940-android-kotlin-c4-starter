@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
  * and the title and description they enter.
  */
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
-    BaseViewModel(app) {
+    BaseViewModel() {
 
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()

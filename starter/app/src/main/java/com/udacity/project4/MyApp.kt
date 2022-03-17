@@ -23,7 +23,6 @@ class MyApp : Application() {
             //Declare a ViewModel - be later inject into Fragment with dedicated injector using by viewModel()
             viewModel {
                 RemindersListViewModel(
-                    get(),
                     get() as ReminderDataSource
                 )
             }
