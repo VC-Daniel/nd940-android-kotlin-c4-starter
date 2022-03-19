@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.*
 import androidx.activity.addCallback
 import androidx.databinding.DataBindingUtil
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
@@ -25,7 +24,6 @@ class ReminderListFragment : BaseFragment() {
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
-    private lateinit var navController: NavController
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,8 +41,6 @@ class ReminderListFragment : BaseFragment() {
         setTitle(getString(R.string.app_name))
 
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
-
-        navController = findNavController()
 
         // If the user presses the back button, log them out and bring them back to the login screen
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
@@ -107,7 +103,7 @@ class ReminderListFragment : BaseFragment() {
         // Sign the user out using the Firebase api
         AuthUI.getInstance().signOut(requireContext())
         // Clear the back stack so the user cannot return to this screen without logging in
-        navController.popBackStack(R.id.reminderListFragment, true)
+        findNavController().popBackStack(R.id.reminderListFragment, true)
         val intent = Intent(context, AuthenticationActivity::class.java)
         startActivity(intent)
     }
