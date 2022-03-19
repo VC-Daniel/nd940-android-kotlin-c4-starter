@@ -9,6 +9,7 @@
         tools:context=".authentication.AuthenticationActivity">
 
         <TextView
+            android:id="@+id/app_summary_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/welcome_to_the_location_reminder_app"
