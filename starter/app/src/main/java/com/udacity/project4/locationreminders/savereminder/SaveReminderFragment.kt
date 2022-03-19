@@ -301,7 +301,7 @@ class SaveReminderFragment() : BaseFragment() {
         // Add the geofence for the reminder
         geofencingClient.addGeofences(geofencingRequest, reminderGeofencePendingIntent)?.run {
             addOnSuccessListener {
-                Log.e(getString(R.string.geofence_added), geofence.requestId)
+                Log.e(context?.getString(R.string.geofence_added), geofence.requestId)
             }
             addOnFailureListener {
                 Toast.makeText(

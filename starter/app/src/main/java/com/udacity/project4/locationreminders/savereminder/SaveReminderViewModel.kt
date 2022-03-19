@@ -24,6 +24,10 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
     val reminderSelectedLocationStr = MutableLiveData<String>()
     var reminderID: String = String()
 
+    /** Indicates if the saving should be allowed. When the user selects a poi saving should
+     * be allowed */
+    var enableSaving = MutableLiveData<Boolean>()
+
     /** The POI the user has selected */
     val selectedPOI = MutableLiveData<PointOfInterest>()
 
