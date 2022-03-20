@@ -37,10 +37,6 @@ Step by step explanation of how to get a dev environment running.
 
 Right click on the `test` or `androidTest` packages and select Run Tests
 
-### Break Down Tests
-
-Explain what each test does and why
-
 ```
 1.androidTest
         These tests validate the UI functionality of each fragment and activity in isolation through the use of test doubles. The ReminderActivityTest.kt tests the apps overall functionality through black box testing.
