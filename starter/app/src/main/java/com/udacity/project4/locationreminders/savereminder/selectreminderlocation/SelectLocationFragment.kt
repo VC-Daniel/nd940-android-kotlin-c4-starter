@@ -88,10 +88,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
      */
     private fun onLocationSelected() {
         if (this::reminderPoi.isInitialized) {
-            _viewModel.selectedPOI.value = reminderPoi
-            _viewModel.latitude.value = reminderPoi.latLng.latitude
-            _viewModel.longitude.value = reminderPoi.latLng.longitude
-            _viewModel.reminderSelectedLocationStr.value = reminderPoi.name
+            _viewModel.selectReminderLocation(reminderPoi)
         }
         // Navigate back to the reminder screen with the selected POI so the user
         // can continue creating a reminder

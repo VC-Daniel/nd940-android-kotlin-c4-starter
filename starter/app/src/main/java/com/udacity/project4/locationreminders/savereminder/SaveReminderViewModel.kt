@@ -58,6 +58,15 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
         }
     }
 
+    /** Set the selected location. This does not commit th */
+    fun selectReminderLocation(reminderPoi: PointOfInterest) {
+        selectedPOI.value = reminderPoi
+        latitude.value = reminderPoi.latLng.latitude
+        longitude.value = reminderPoi.latLng.longitude
+        reminderSelectedLocationStr.value = reminderPoi.name
+        enableSaving.value = true
+    }
+
     /**
      * Save the reminder to the data source
      */
