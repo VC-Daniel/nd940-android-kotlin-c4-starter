@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.app.Application
 import android.os.Bundle
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
@@ -23,6 +24,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.core.IsNot
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.startKoin
@@ -35,6 +37,9 @@ import org.koin.test.AutoCloseKoinTest
 @MediumTest
 class SelectLocationFragmentTest :
     AutoCloseKoinTest() {// Extended Koin Test - embed autoclose @after method to close Koin after every test
+
+    @get:Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
 
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
@@ -141,11 +146,7 @@ class SelectLocationFragmentTest :
         )
 
         // WHEN - A reminder is selected
-        saveReminderViewModel.selectedPOI.postValue(reminderPoi)
-        saveReminderViewModel.latitude.postValue(reminderPoi.latLng.latitude)
-        saveReminderViewModel.longitude.postValue(reminderPoi.latLng.longitude)
-        saveReminderViewModel.reminderSelectedLocationStr.postValue(reminderPoi.name)
-        saveReminderViewModel.enableSaving.postValue(true)
+        saveReminderViewModel.selectReminderLocation(reminderPoi)
 
         // THEN - The save button is enabled
         Espresso.onView(ViewMatchers.withId(R.id.saveButton))
