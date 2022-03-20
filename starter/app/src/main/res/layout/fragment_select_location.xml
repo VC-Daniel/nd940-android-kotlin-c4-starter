@@ -30,7 +30,7 @@
             style="@style/PrimaryButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
+            android:enabled="@{viewModel.enableSaving}"
             android:text="@string/save"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

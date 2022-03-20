@@ -87,11 +87,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
      * Pass back the data about the selected POI so it can be used for creating a new reminder
      */
     private fun onLocationSelected() {
-        _viewModel.selectedPOI.value = reminderPoi
-        _viewModel.latitude.value = reminderPoi.latLng.latitude
-        _viewModel.longitude.value = reminderPoi.latLng.longitude
-        _viewModel.reminderSelectedLocationStr.value = reminderPoi.name
-
+        if (this::reminderPoi.isInitialized) {
+            _viewModel.selectedPOI.value = reminderPoi
+            _viewModel.latitude.value = reminderPoi.latLng.latitude
+            _viewModel.longitude.value = reminderPoi.latLng.longitude
+            _viewModel.reminderSelectedLocationStr.value = reminderPoi.name
+        }
         // Navigate back to the reminder screen with the selected POI so the user
         // can continue creating a reminder
         _viewModel.navigationCommand.value = NavigationCommand.Back
@@ -141,7 +142,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
      */
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
-            binding.saveButton.isEnabled = true
+            _viewModel.enableSaving.value = true
             map.clear()
             reminderPoi = poi
             map.addMarker(MarkerOptions().position(poi.latLng).title(poi.name)).showInfoWindow()
