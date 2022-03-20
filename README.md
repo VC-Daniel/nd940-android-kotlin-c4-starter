@@ -1,12 +1,12 @@
 # Location Reminder
 
-A Todo list app with location reminders that remind the user to do something when he reaches a specific location. The app will require the user to create an account and login to set and access reminders. This app is thoroughly tested using black box testing as well as test doubles.
+A Todo list app with location reminders that remind the user to do something when he reaches a specific location. The app will require the user to create an account and login to set and access reminders. This app is thoroughly tested using black box tests to validate the overall funcionality and navigation of the app. In addition the tests validate concise features in isolation using test doubles.
 
 ## Getting Started
 
 1. Clone the project to your local machine.
 2. Open the project using Android Studio.
-3. Supply a Google maps API token & Firebase google-services.json file
+3. Supply a Google maps API token & Firebase google-services.json file.
 
 ### Dependencies
 
