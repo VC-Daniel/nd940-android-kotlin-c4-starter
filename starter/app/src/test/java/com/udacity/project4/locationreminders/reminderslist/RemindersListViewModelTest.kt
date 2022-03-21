@@ -45,6 +45,8 @@ class RemindersListViewModelTest {
     }
 
     @Test
+            /** Test that when reminders are being loaded from the repository
+             * the loading indicator is set to be visible */
     fun loadReminders_Loading() {
         mainCoroutineRule.pauseDispatcher()
 
@@ -62,6 +64,8 @@ class RemindersListViewModelTest {
     }
 
     @Test
+            /** Test that when no reminders are in the repository the no data indicator is
+             * set to be shown */
     fun loadReminders_NoData() {
         remindersListViewModel.loadReminders()
 
@@ -72,6 +76,8 @@ class RemindersListViewModelTest {
     }
 
     @Test
+            /** Test that an error message is set to be displayed in a snackbar when the
+             * repository returns an error */
     fun loadReminders_ShowError() {
         remindersRepository.setReturnError(true)
         remindersListViewModel.loadReminders()
@@ -83,6 +89,7 @@ class RemindersListViewModelTest {
     }
 
     @Test
+            /** Test loading multiple reminders from the repository */
     fun loadReminders_LoadMultipleReminders() {
         val testReminderOne = ReminderDTO(
             "Reminder Title",
