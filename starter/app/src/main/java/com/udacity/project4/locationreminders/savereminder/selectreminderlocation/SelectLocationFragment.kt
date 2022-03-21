@@ -30,7 +30,7 @@ import org.koin.android.ext.android.inject
 private const val TAG = "SELECTLOCATIONFRAGMENT"
 
 /**
- * Allows the user to choose a POI on a Google map and return the information to the reminder
+ * Allows the user to choose a POI on a Google Map and return the information to the reminder
  * view model. The logic for retrieving permissions is based off the example code found in the
  * Geo Fences sample app at https://github.com/udacity/android-kotlin-geo-fences.git
  */
