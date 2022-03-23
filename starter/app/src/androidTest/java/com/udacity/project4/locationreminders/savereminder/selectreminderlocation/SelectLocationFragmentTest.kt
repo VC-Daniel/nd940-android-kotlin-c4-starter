@@ -19,6 +19,7 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorFragment
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.core.IsNot
@@ -27,10 +28,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
+import java.util.*
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
@@ -64,7 +67,7 @@ class SelectLocationFragmentTest :
         stopKoin()
 
         val myModule = module {
-            single {
+            viewModel {
                 saveReminderViewModel
             }
         }
@@ -77,11 +80,13 @@ class SelectLocationFragmentTest :
 
     @Before
     fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().register(dataBindingIdlingResource)
     }
 
     @After
     fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
     }
 
@@ -100,13 +105,6 @@ class SelectLocationFragmentTest :
 
     @Test
     fun selectLocation_saveNotEnabled() = runBlockingTest {
-        val reminderPoi = PointOfInterest(
-            LatLng(
-                37.4222359720916,
-                -122.08406823759553
-            ), "", "Googleplex"
-        )
-
         // GIVEN - The select location screen is displayed
         val fragment = launchFragmentInContainer<SelectLocationFragment>(Bundle(), R.style.AppTheme)
         dataBindingIdlingResource.monitorFragment(fragment)
@@ -124,7 +122,7 @@ class SelectLocationFragmentTest :
     }
 
     @Test
-    fun selectLocation_saveEnabled() = runBlockingTest {
+    fun selectLocation_saveEnabledPoi() = runBlockingTest {
         val reminderPoi = PointOfInterest(
             LatLng(
                 37.4222359720916,
@@ -145,7 +143,42 @@ class SelectLocationFragmentTest :
             )
         )
 
-        // WHEN - A reminder is selected
+        // WHEN - A reminder location is selected that corresponds to a poi
+        saveReminderViewModel.selectReminderLocation(reminderPoi)
+
+        // THEN - The save button is enabled
+        Espresso.onView(ViewMatchers.withId(R.id.saveButton))
+            .check(ViewAssertions.matches(ViewMatchers.isEnabled()))
+    }
+
+    @Test
+    fun selectLocation_saveEnabledCustomLocation() = runBlockingTest {
+        val customLatLng = LatLng(37.348541, -122.102254)
+        val formattedName = String.format(
+            Locale.getDefault(),
+            appContext.getString(R.string.lat_long_snippet),
+            customLatLng.latitude,
+            customLatLng.longitude
+        )
+
+        val reminderPoi = PointOfInterest(
+            customLatLng, appContext.getString(R.string.dropped_pin), formattedName
+        )
+
+
+        val fragment = launchFragmentInContainer<SelectLocationFragment>(Bundle(), R.style.AppTheme)
+        dataBindingIdlingResource.monitorFragment(fragment)
+
+        // GIVEN - The select location screen is displayed with no currently selected Poi
+        Espresso.onView(ViewMatchers.withId(R.id.saveButton)).check(
+            ViewAssertions.matches(
+                IsNot.not(
+                    ViewMatchers.isEnabled()
+                )
+            )
+        )
+
+        // WHEN - A reminder is selected that uses a custom location rather then a defined poi
         saveReminderViewModel.selectReminderLocation(reminderPoi)
 
         // THEN - The save button is enabled
