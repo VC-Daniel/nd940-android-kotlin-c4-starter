@@ -27,7 +27,7 @@ import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import java.util.concurrent.TimeUnit
 
 private const val REMINDER_TITLE_KEY = "REMINDER_TITLE"
@@ -41,6 +41,7 @@ private const val REMINDER_LONG_KEY = "REMINDER_lONG"
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
+private const val REQUEST_SET_PERMISSIONS = 30
 private const val TAG = "SaveReminderFragment"
 private const val LOCATION_PERMISSION_INDEX = 0
 private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
@@ -65,7 +66,7 @@ class SaveReminderFragment() : BaseFragment() {
     private lateinit var settingsSnackbar: Snackbar
 
     //Get the view model this time as a single to be shared with the another fragment
-    override val _viewModel: SaveReminderViewModel by inject()
+    override val _viewModel: SaveReminderViewModel by sharedViewModel<SaveReminderViewModel>()
     private lateinit var binding: FragmentSaveReminderBinding
 
     private lateinit var geofencingClient: GeofencingClient
@@ -122,29 +123,33 @@ class SaveReminderFragment() : BaseFragment() {
             R.string.permission_denied_explanation,
             Snackbar.LENGTH_INDEFINITE
         ).setAction(R.string.settings) {
-            startActivity(Intent().apply {
+            startActivityForResult(Intent().apply {
                 action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            })
+            }, REQUEST_SET_PERMISSIONS)
         }
 
         // Save the reminder with the information supplied by the user
         binding.saveReminder.setOnClickListener {
-            val title = _viewModel.reminderTitle.value
-            val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr.value
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
-
-            reminderDataItem =
-                ReminderDataItem(title, description, location, latitude, longitude)
+            instantiateReminderData()
 
             // If the data is valid save it and create a geofence for the reminder notification
             if (_viewModel.validateEnteredData(reminderDataItem)) {
                 checkPermissionsAndStartGeofencing()
             }
         }
+    }
+
+    /** Ensure reminderDataItem has all the information for the reminder */
+    private fun instantiateReminderData() {
+        val title = _viewModel.reminderTitle.value
+        val description = _viewModel.reminderDescription.value
+        val location = _viewModel.reminderSelectedLocationStr.value
+        val latitude = _viewModel.latitude.value
+        val longitude = _viewModel.longitude.value
+
+        reminderDataItem =
+            ReminderDataItem(title, description, location, latitude, longitude)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -196,24 +201,57 @@ class SaveReminderFragment() : BaseFragment() {
             if (exception is ResolvableApiException && resolve) {
                 try {
                     // If an activity has been supplied to resolve this then start it
-                    exception.startResolutionForResult(
-                        requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON
+                    // This logic is based off of a code review from Udacity and the documentation at
+                    // https://developer.android.com/reference/kotlin/androidx/fragment/app/Fragment#startintentsenderforresult
+                    startIntentSenderForResult(
+                        exception.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON,
+                        null,
+                        0,
+                        0,
+                        0,
+                        null
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
                 }
             } else {
-                settingsSnackbar.show()
+                if (resolve) {
+                    settingsSnackbar.show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.location_enable_explanation),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
+        }
+        locationSettingsResponseTask.addOnCanceledListener {
+            // If the user cancels providing location data provide them with information
+            // on why we need it
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.location_enable_explanation),
+                Toast.LENGTH_SHORT
+            ).show()
         }
 
         // If the required permissions have been added then save the reminder and
         // add a corresponding geofence
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                _viewModel.validateAndSaveReminder(reminderDataItem)
-                addGeofenceForReminder()
+                // Once the user's location service has been turned on check If permissions
+                // have been granted and save the reminder and create a corresponding geofence
+                if (foregroundAndBackgroundLocationPermissionApproved()) {
+                    if (!this::reminderDataItem.isInitialized) {
+                        instantiateReminderData()
+                    }
+                    _viewModel.validateAndSaveReminder(reminderDataItem)
+                    addGeofenceForReminder()
+                } else {
+                    settingsSnackbar.show()
+                }
             }
         }
     }
@@ -273,7 +311,7 @@ class SaveReminderFragment() : BaseFragment() {
     private fun addGeofenceForReminder() {
         // Set the location and radius for the geofence
         val geofence = Geofence.Builder()
-            .setRequestId(_viewModel.reminderID)
+            .setRequestId(reminderDataItem.id)
             .setCircularRegion(
                 _viewModel.latitude.value!!, _viewModel.longitude.value!!,
                 GEOFENCE_RADIUS_IN_METERS
@@ -316,6 +354,12 @@ class SaveReminderFragment() : BaseFragment() {
         }
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Provide a user friendly UX by closing the settings snackbar when the fragment is destroyed.
+        settingsSnackbar.dismiss()
+    }
+
     /**
      * Check the result of requesting location permissions. In all cases, we need to have the
      * location permission. On Android 10+ (Q) we need to have the background permission as well.
@@ -334,15 +378,21 @@ class SaveReminderFragment() : BaseFragment() {
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
                     PackageManager.PERMISSION_DENIED)
         ) {
-            if (this::settingsSnackbar.isInitialized) {
-                // Show the snackbar to inform the user that we need to location permissions before
-                // continuing
-                settingsSnackbar.show()
+            if (!foregroundAndBackgroundLocationPermissionApproved()) {
+                if (this::settingsSnackbar.isInitialized) {
+                    // Show the snackbar to inform the user that we need to location permissions before
+                    // continuing
+                    settingsSnackbar.show()
+                }
+            } else {
+                // If the required permissions have been granted then save the reminder
+                // and add a geofence
+                checkDeviceLocationSettingsAndStartGeofence(true)
             }
         } else {
             // If the required permissions have been granted then save the reminder
             // and add a geofence
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartGeofence(true)
         }
     }
 
@@ -357,6 +407,12 @@ class SaveReminderFragment() : BaseFragment() {
         if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
             checkDeviceLocationSettingsAndStartGeofence(false)
         }
+
+        // Now that the user has provided the necessary permissions begin the process of saving
+        // the reminder and if necessary ask the user to turn on the location service.
+        if (requestCode == REQUEST_SET_PERMISSIONS) {
+            checkDeviceLocationSettingsAndStartGeofence(true)
+        }
     }
 
     /**
@@ -364,7 +420,7 @@ class SaveReminderFragment() : BaseFragment() {
      */
     private fun checkPermissionsAndStartGeofencing() {
         if (foregroundAndBackgroundLocationPermissionApproved()) {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettingsAndStartGeofence(true)
         } else {
             requestForegroundAndBackgroundLocationPermissions()
         }
