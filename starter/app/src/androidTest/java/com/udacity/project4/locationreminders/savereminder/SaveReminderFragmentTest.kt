@@ -24,6 +24,7 @@ import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.ToastMatcher
 import com.udacity.project4.util.monitorFragment
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
@@ -33,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -83,7 +85,7 @@ class SaveReminderFragmentTest :
             )
         stopKoin()//stop the original app koin
         val myModule = module {
-            single {
+            viewModel {
                 saveReminderViewModel
             }
         }
@@ -99,11 +101,13 @@ class SaveReminderFragmentTest :
 
     @Before
     fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().register(dataBindingIdlingResource)
     }
 
     @After
     fun unregisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
     }
 
